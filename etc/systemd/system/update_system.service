@@ -1,0 +1,15 @@
+[Unit]
+
+Description=Update AstraLinux Unit
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStartPre=/bin/bash -c /opt/update-system/update-system-startpre.sh
+ExecStart=/bin/bash -c /opt/update-system/update-system-start.sh
+TimeoutSec=3600
+
+[Install]
+WantedBy=multi-user.target

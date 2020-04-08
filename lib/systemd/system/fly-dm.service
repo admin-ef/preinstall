@@ -1,0 +1,17 @@
+[Unit]
+Description=The FLY login manager
+
+After=rc-local.service plymouth-start.service dbus.service systemd-user-sessions.service libflygetexe-bin.service
+Requires=update_system.service
+OnFailure=plymouth-quit.service
+
+[Service]
+ExecStartPre=/bin/bash -c /usr/bin/fly-dm-prepare.sh
+ExecStart=/usr/bin/fly-dm vt7
+
+IgnoreSIGPIPE=no
+
+EnvironmentFile=-/etc/default/locale
+
+[Install]
+Alias=display-manager.service

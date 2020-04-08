@@ -1,0 +1,8 @@
+#/bin/bash
+
+# Ставим в авторзагрузку служба обновление ОС
+
+systemctl daemon-reload
+systemctl enable update_system.service
+systemctl start update_system.service
+echo "Служба обновления ОС добавлена в автозагрузку, при наличии обновлений система будет обновлена при следующей загрузке"

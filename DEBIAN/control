@@ -1,0 +1,8 @@
+Package: astra-update-rg-preinstall
+Version: 0.11.5
+Section: base
+Priority: optional
+Architecture: amd64
+Maintainer: chaplyginaa@rosgvard.ru
+Replaces: fly-dm
+Description: Configuring operating system setting for update

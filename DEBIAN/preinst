@@ -1,0 +1,57 @@
+#!/bin/bash
+# Проверяем МКЦ
+if [ "$( pdp-id -i )" != 63 ] ; then 
+   echo "Для установки обновлений необходим максимальный уровень мандатного контроля целостности"
+   exit 1; 
+fi
+echo "Уровень $( pdp-id -i )" 
+#echo "Все норм"
+#Проверяем пользователя (нужен рут)
+if [ "$( id -u )" != 0 ] ; then 
+   echo "Установку обновлений необходимо выполнить под root"
+   exit 1; 
+fi
+
+#Добавляем репозиторий для обновлений
+echo "Добавляем репозитории для обновлений"
+
+SERV=$(cat /etc/apt/sources.list | grep mount-main | cut -d/ -f 3)
+
+echo "deb http://$SERV/repo_update/main smolensk main contrib non-free" > /etc/apt/sources.list.d/update.list
+echo "deb http://$SERV/repo_update/devel/ smolensk main contrib non-free" > /etc/apt/sources.list.d/update-dev.list
+apt update
+
+#фиксим памстек
+cat > /usr/share/pam-configs/winbind << EOF
+Name: Winbind NT/Active Directory authentication
+Default: yes
+Priority: 192
+Auth-Type: Primary
+Auth:
+[success=1 default=ignore] pam_winbind.so krb5_auth krb5_ccache_type=KEYRING cached_login try_first_pass
+Auth-Initial:
+[success=1 default=ignore] pam_winbind.so krb5_auth krb5_ccache_type=KEYRING cached_login
+Account-Type: Primary
+Account:
+[success=end new_authtok_reqd=done default=ignore] pam_winbind.so
+Password-Type: Primary
+Password:
+[success=end default=ignore] pam_winbind.so try_authtok try_first_pass
+Password-Initial:
+[success=end default=ignore] pam_winbind.so
+Session-Type: Additional
+Session:
+optional pam_winbind.so
+EOF
+pam-auth-update --force --package winbind
+
+#Удаляем доменных пользователей из группы астра-админ
+for admin in  $(getent group astra-admin | cut -d: -f 4 |  sed -e 'y/,/ /')
+do
+    if   [ ! -d /home/$admin ] 
+    then
+    gpasswd -d $admin astra-admin
+    echo "Пользователь "$admin" удален из группы astra-admins"
+    echo $admin >> /opt/user-admins
+    fi
+done
